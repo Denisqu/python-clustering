@@ -44,8 +44,11 @@ class FOREL:
 
             self.clusters.append(close_objects_arr)
             #arr = np.setdiff1d(arr, close_objects_arr) # Помечаем объекты внутри сферы радиуса R вокруг текущего объекта как кластеризованные, выкидываем их из выборки
-            self.__remove_objects_from_array(arr, close_objects_arr)
+            arr = self.__remove_objects_from_array(arr, close_objects_arr)
             print(f"new arr length = {len(arr)}")
+            print("self.clusters:")
+            for cluster in self.clusters:
+                print(cluster)
         
         if len(arr) == 1:
             self.clusters.append(close_objects_arr)
@@ -59,14 +62,14 @@ class FOREL:
         return arr[random.randrange(0, len(arr))]
     
     def __get_close_objects(self, arr, current_object):
-        print(f"__get_close_objects, arr = {arr}, current_object = {current_object}")
+        print(f"__get_close_objects, current_object = {current_object}")
         return [point for point in arr if np.linalg.norm(current_object - point) < self.r]
    
     
     def __central_object(self, objects_arr):
         obj_0 = 0
         obj_1 = 0
-        print(f"__central_object, objects_arr = {objects_arr}, objects_arr[0] = {obj_0}, objects_arr[1] = {obj_1}")
+        print(f"__central_object")
         #https://stackoverflow.com/questions/15819980/calculate-mean-across-dimension-in-a-2d-array
         mean_coords = np.mean(objects_arr, axis=0)
         #find closesest to mean_coords:
@@ -82,17 +85,23 @@ class FOREL:
     def __remove_objects_from_array(self, array, objects):
         print(f"ARRAY LEN: {len(array)}")
         for array_item_index in range(len(array) - 1, 0, -1):
-            print(f"array_item_index = {array_item_index}")
-            removed_object = None
-            for object in objects:
-                print(f"array_item = {array[array_item_index][0]}")
-                if object[0] == array[array_item_index][0] and object[1] == array[array_item_index][1]:
-                    removed_object = object
+            #print(f"array_item_index = {array_item_index}")
+            removed_object_index = None
+            for object_index in range(len(objects) - 1, 0, -1):
+                #print(f"array_item = {array[array_item_index][0]}")
+                if objects[object_index][0] == array[array_item_index][0] and objects[object_index][1] == array[array_item_index][1]:
+                    removed_object_index = object_index
                     break
-            print(f"deleting array_item = {array_item_index}")
+            
             # TODO: сейчас как-то неправильно удаляется
-            array = np.delete(array, array_item_index)
-            print(f"new size of array = {len(array)}")
+            if removed_object_index is not None:
+                objects = np.delete(objects, removed_object_index, axis=0)
+                print(f"deleting array_item = {array_item_index}")
+                print(f"new size of array = {len(array)}")
+                array = np.delete(array, array_item_index, axis=0)
+
+        return array
+
             
         
 if __name__ == '__main__':
