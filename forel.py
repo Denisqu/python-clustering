@@ -32,26 +32,25 @@ class FOREL:
             current_object = self.__get_random_non_clustered_object(arr) # Случайно выбираем текущий объект из выборки
             print(f"__cluster, current_object = {current_object}")
             close_objects_arr = self.__get_close_objects(arr, current_object) # Помечаем объекты выборки, находящиеся на расстоянии менее, чем R от текущего
-            centeral_object = self.__central_object(close_objects_arr) # Вычисляем их центр тяжести, помечаем этот центр как новый текущий объект
+            central_object = self.__central_object(close_objects_arr) # Вычисляем их центр тяжести, помечаем этот центр как новый текущий объект
 
-            while not (centeral_object[0] == current_object[0] and centeral_object[1] == current_object[1]): #Повторяем шаги 2-3, пока новый текущий объект не совпадет с прежним
-                current_object = centeral_object
+            while not (central_object[0] == current_object[0] and central_object[1] == current_object[1]): #Повторяем шаги 2-3, пока новый текущий объект не совпадет с прежним
+                current_object = central_object
                 print(f"__cluster, current_object = {current_object}")
                 close_objects_arr = self.__get_close_objects(arr, current_object)
-                centeral_object = self.__central_object(close_objects_arr)
-                print(f"current object = {current_object}, central_object = {centeral_object}")
+                central_object = self.__central_object(close_objects_arr)
+                print(f"current object = {current_object}, central_object = {central_object}")
             
 
             self.clusters.append(close_objects_arr)
-            #arr = np.setdiff1d(arr, close_objects_arr) # Помечаем объекты внутри сферы радиуса R вокруг текущего объекта как кластеризованные, выкидываем их из выборки
-            arr = self.__remove_objects_from_array(arr, close_objects_arr)
+            arr = self.__remove_objects_from_array(arr, close_objects_arr) # Помечаем объекты внутри сферы радиуса R вокруг текущего объекта как кластеризованные, выкидываем их из выборки
             print(f"new arr length = {len(arr)}")
             print("self.clusters:")
             for cluster in self.clusters:
                 print(cluster)
         
         if len(arr) == 1:
-            self.clusters.append(close_objects_arr)
+            self.clusters.append(arr)
 
 
     def __is_finished(self, arr) -> bool:
@@ -72,22 +71,19 @@ class FOREL:
         print(f"__central_object")
         #https://stackoverflow.com/questions/15819980/calculate-mean-across-dimension-in-a-2d-array
         mean_coords = np.mean(objects_arr, axis=0)
-        #find closesest to mean_coords:
         # https://stackoverflow.com/questions/10818546/optimize-finding-index-of-nearest-point-in-2d-arrays
         nearest_point = objects_arr[spatial.KDTree(objects_arr).query(mean_coords)[1]]
 
-        #mean_y = np.mean(objects_arr, axis=1)
-        # TODO: какие-то странные значения выводит в консоль, надо разобраться
         print(f"mean_coords = {mean_coords}, nearest_point = {nearest_point}")
-        #return np.array([mean_x, mean_y])
         return nearest_point
     
     def __remove_objects_from_array(self, array, objects):
         print(f"ARRAY LEN: {len(array)}")
-        for array_item_index in range(len(array) - 1, 0, -1):
+        print(f"OBJECTS LEN: {len(objects)}")
+        for array_item_index in range(len(array) - 1, -1, -1):
             #print(f"array_item_index = {array_item_index}")
             removed_object_index = None
-            for object_index in range(len(objects) - 1, 0, -1):
+            for object_index in range(len(objects) - 1, -1, -1):
                 #print(f"array_item = {array[array_item_index][0]}")
                 if objects[object_index][0] == array[array_item_index][0] and objects[object_index][1] == array[array_item_index][1]:
                     removed_object_index = object_index
@@ -102,20 +98,43 @@ class FOREL:
 
         return array
 
+def create_labels_array(initial_array, clustered_array):
+    labels_array = []
+    label_num_map = {}
+
+    for i, cluster in enumerate(clustered_array):
+        label_num_map[i] = cluster 
+
+    k = 0
+    for item in initial_array:
+        k += 1 
+        for i, cluster in enumerate(clustered_array):
+            is_in_list = np.any(cluster == item)
+            if is_in_list:
+                labels_array.append(i)
+                break
             
+    print(k)
+    return labels_array            
         
 if __name__ == '__main__':
     # creating a dataset for clustering
-    X, y = datasets.make_blobs()
+    X, y = datasets.make_blobs(random_state=1)
     print(f"X.shape = {X.shape}, y.shape = {y.shape}")
     print(X)
-    forel = FOREL(1)
+    forel = FOREL(2.5)
     result = forel(X)
+
+    result_count = 0
+    for i in result:
+        for j in range(0, len(i)):
+            result_count += 1
+
+    labels = create_labels_array(X, result)
+    legend_labels = []
+    for i, _ in enumerate(labels):
+        legend_labels.append(f"Class #{i}")
     
-    for i, cluster in enumerate(result):
-        print(f"{i}, {cluster}")
-    #y_preds = run_Kmeans(3, X)
-    #Getting unique labels
-    #p = myplot.Plot()
-    #p.plot_in_2d(X, y_preds, title="K-Means Clustering")
+    p = myplot.Plot()
     #p.plot_in_2d(X, y, title="Actual Clustering")
+    p.plot_in_2d(X, labels, title="FOREL Clustering", legend_labels=legend_labels)

@@ -70,6 +70,9 @@ if __name__ == '__main__':
     print(f"X.shape = {X.shape}, y.shape = {y.shape}")
     y_preds = run_Kmeans(3, X)
     label = y_preds
+    print(f"X = {X}")
+    print(f"y_preds shape = {y_preds.shape}")
+    print(f"y_preds = {y_preds}")
     #Getting unique labels
     p = myplot.Plot()
     p.plot_in_2d(X, y_preds, title="K-Means Clustering")
