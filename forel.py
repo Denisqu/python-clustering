@@ -52,7 +52,6 @@ class FOREL:
         if len(arr) == 1:
             self.clusters.append(arr)
 
-
     def __is_finished(self, arr) -> bool:
         print(f"__is_finished, arr len = {len(arr)}")
         return len(arr) <= 1
@@ -64,10 +63,7 @@ class FOREL:
         print(f"__get_close_objects, current_object = {current_object}")
         return [point for point in arr if np.linalg.norm(current_object - point) < self.r]
    
-    
     def __central_object(self, objects_arr):
-        obj_0 = 0
-        obj_1 = 0
         print(f"__central_object")
         #https://stackoverflow.com/questions/15819980/calculate-mean-across-dimension-in-a-2d-array
         mean_coords = np.mean(objects_arr, axis=0)
@@ -89,7 +85,6 @@ class FOREL:
                     removed_object_index = object_index
                     break
             
-            # TODO: сейчас как-то неправильно удаляется
             if removed_object_index is not None:
                 objects = np.delete(objects, removed_object_index, axis=0)
                 print(f"deleting array_item = {array_item_index}")
@@ -105,16 +100,13 @@ def create_labels_array(initial_array, clustered_array):
     for i, cluster in enumerate(clustered_array):
         label_num_map[i] = cluster 
 
-    k = 0
     for item in initial_array:
-        k += 1 
         for i, cluster in enumerate(clustered_array):
             is_in_list = np.any(cluster == item)
             if is_in_list:
                 labels_array.append(i)
                 break
             
-    print(k)
     return labels_array            
         
 if __name__ == '__main__':
@@ -122,7 +114,7 @@ if __name__ == '__main__':
     X, y = datasets.make_blobs(random_state=1)
     print(f"X.shape = {X.shape}, y.shape = {y.shape}")
     print(X)
-    forel = FOREL(2.5)
+    forel = FOREL(2.75)
     result = forel(X)
 
     result_count = 0
